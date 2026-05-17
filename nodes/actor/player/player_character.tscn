@@ -14,6 +14,7 @@ script/source = "extends CharacterBody2D
 @onready var actor_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
 @onready var coyote_timer := $CoyoteTimer
+@onready var dash_timer: Timer = $DashTimer
 
 const SPEED = 90.0
 const ACCEL = 500.0
@@ -149,6 +150,10 @@ shape = SubResource("CapsuleShape2D_j3yda")
 
 [node name="CoyoteTimer" type="Timer" parent="." unique_id=1359204393]
 wait_time = 0.4
+one_shot = true
+
+[node name="DashTimer" type="Timer" parent="." unique_id=1866447491]
+wait_time = 0.3
 one_shot = true
 
 [connection signal="timeout" from="CoyoteTimer" to="." method="_on_coyote_timer_timeout"]
