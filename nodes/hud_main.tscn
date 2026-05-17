@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://cm87xswq4uwdj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_15x6o"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xff8e"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_55dqb"]
+bg_color = Color(0.7316689, 0, 0.30458546, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ksqh7"]
+bg_color = Color(0, 0.7115979, 0.45966345, 1)
+
+[node name="HUDMain" type="Control" unique_id=440019572]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="PanelContainer" parent="." unique_id=369637066]
+texture_filter = 1
+layout_mode = 0
+offset_right = 320.0
+offset_bottom = 32.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_15x6o")
+
+[node name="MarginContainer" type="MarginContainer" parent="ColorRect" unique_id=910190449]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/MarginContainer" unique_id=541770961]
+layout_mode = 2
+alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ColorRect/MarginContainer/HBoxContainer" unique_id=1544106908]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.0
+
+[node name="ProgressBar" type="ProgressBar" parent="ColorRect/MarginContainer/HBoxContainer/VBoxContainer" unique_id=605972588]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_xff8e")
+theme_override_styles/fill = SubResource("StyleBoxFlat_55dqb")
+value = 100.0
+show_percentage = false
+
+[node name="ProgressBar2" type="ProgressBar" parent="ColorRect/MarginContainer/HBoxContainer/VBoxContainer" unique_id=1969109462]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_xff8e")
+theme_override_styles/fill = SubResource("StyleBoxFlat_ksqh7")
+value = 100.0
+show_percentage = false

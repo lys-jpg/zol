@@ -1,11 +1,13 @@
 [gd_scene format=3 uid="uid://8hric5c7c1o"]
 
-[ext_resource type="Texture2D" uid="uid://bv0qo4kbovnjw" path="res://assets/sprites/actor/player/NES - Zelda 2_ The Adventure of Link - Playable Characters - Link.png" id="1_02ohv"]
+[ext_resource type="Texture2D" uid="uid://cl3sm6ubvtn5m" path="res://assets/sprites/actor/player/Sprite-0002-Sheet.png" id="1_ur53t"]
 
 [sub_resource type="GDScript" id="GDScript_j556s"]
 resource_name = "playerCharacter"
 script/source = "extends CharacterBody2D
 
+@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
+@onready var camera: Camera2D = $Camera2D
 
 const SPEED = 90.0
 const ACCEL = 500.0
@@ -39,8 +41,15 @@ func _physics_process(delta: float) -> void:
 	var direction := Input.get_axis(\"ui_left\", \"ui_right\")
 	if direction:
 		velocity.x = move_toward(velocity.x, direction * SPEED, ACCEL * delta)
+		animated_sprite_2d.play(\"walking\")
+		if velocity.x < 0:
+			animated_sprite_2d.flip_h = true
+		elif velocity.x > 0:
+			animated_sprite_2d.flip_h = false
+		
 	else:
 		velocity.x = move_toward(velocity.x, 0, FRICTION * delta)
+		animated_sprite_2d.stop()
 	
 	if Input.is_action_just_pressed(\"attack\"):
 		attack()
@@ -54,62 +63,39 @@ func _on_coyote_timer_timeout() -> void:
 	pass # Replace with function body.
 "
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_1f4ql"]
-atlas = ExtResource("1_02ohv")
-region = Rect2(29, 0, 17, 43)
+[sub_resource type="AtlasTexture" id="AtlasTexture_4k7gw"]
+atlas = ExtResource("1_ur53t")
+region = Rect2(0, 0, 18, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_hv236"]
-atlas = ExtResource("1_02ohv")
-region = Rect2(47, 0, 17, 43)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_7f2jv"]
-atlas = ExtResource("1_02ohv")
-region = Rect2(65, 0, 17, 43)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_v0hs2"]
-atlas = ExtResource("1_02ohv")
-region = Rect2(83, 0, 17, 43)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ns8y8"]
-atlas = ExtResource("1_02ohv")
-region = Rect2(209, 0, 17, 43)
+[sub_resource type="AtlasTexture" id="AtlasTexture_1y48n"]
+atlas = ExtResource("1_ur53t")
+region = Rect2(32, 0, 18, 32)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_c56d2"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_1f4ql")
+"texture": SubResource("AtlasTexture_4k7gw")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_hv236")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_7f2jv")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_v0hs2")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ns8y8")
+"texture": SubResource("AtlasTexture_1y48n")
 }],
 "loop": true,
-"name": &"default",
+"name": &"walking",
 "speed": 5.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_j3yda"]
-radius = 4.0
-height = 22.0
+radius = 7.0
+height = 32.0
 
 [node name="PlayerCharacter" type="CharacterBody2D" unique_id=1766799002]
 script = SubResource("GDScript_j556s")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1453217158]
 texture_filter = 1
-scale = Vector2(0.5, 0.5)
 sprite_frames = SubResource("SpriteFrames_c56d2")
-autoplay = "default"
-frame_progress = 0.31029296
+animation = &"walking"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=580874419]
 shape = SubResource("CapsuleShape2D_j3yda")
@@ -117,5 +103,8 @@ shape = SubResource("CapsuleShape2D_j3yda")
 [node name="CoyoteTimer" type="Timer" parent="." unique_id=1359204393]
 wait_time = 0.4
 one_shot = true
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=106814675]
+offset = Vector2(60, -60)
 
 [connection signal="timeout" from="CoyoteTimer" to="." method="_on_coyote_timer_timeout"]
