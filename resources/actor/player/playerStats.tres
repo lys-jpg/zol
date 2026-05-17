@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StatsBase" format=3 uid="uid://kpjf1pjkf7sb"]
+
+[ext_resource type="Script" uid="uid://c4k8rk74yujg7" path="res://StatsComponentBaseScript.gd" id="1_uaxff"]
+
+[resource]
+script = ExtResource("1_uaxff")
+max_hp = 20.0
+hp = 10.0
+mp = 10.0
+name_label = "Player"
+metadata/_custom_type_script = "uid://c4k8rk74yujg7"

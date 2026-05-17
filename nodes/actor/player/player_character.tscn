@@ -1,66 +1,94 @@
 [gd_scene format=3 uid="uid://8hric5c7c1o"]
 
+[ext_resource type="Resource" uid="uid://kpjf1pjkf7sb" path="res://resources/actor/player/playerStats.tres" id="1_1y48n"]
 [ext_resource type="Texture2D" uid="uid://cl3sm6ubvtn5m" path="res://assets/sprites/actor/player/Sprite-0002-Sheet.png" id="1_ur53t"]
+[ext_resource type="Script" uid="uid://crsdputxofos3" path="res://stateMachineManager.gd" id="2_1y48n"]
 
 [sub_resource type="GDScript" id="GDScript_j556s"]
 resource_name = "playerCharacter"
 script/source = "extends CharacterBody2D
 
-@onready var animated_sprite_2d: AnimatedSprite2D = $AnimatedSprite2D
+@export var stats: StatsBase
+
+
+@onready var actor_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
+@onready var coyote_timer := $CoyoteTimer
 
 const SPEED = 90.0
 const ACCEL = 500.0
 const FRICTION = 300.0
 const JUMP_VELOCITY = -300.0
 
-@onready var coyote_timer := $CoyoteTimer
+
 var was_on_floor = false
 
 func attack():
 	print(\"Attack pressed!\")
 
 func _physics_process(delta: float) -> void:
+	pass
 	
+"
+
+[sub_resource type="GDScript" id="GDScript_4k7gw"]
+resource_name = "IdleState"
+script/source = "extends State
+
+
+@onready var state_machine: StateMachine = $\"..\"
+@onready var machine_owner := state_machine.machine_owner
+
+var was_on_floor = false
+
+func physics_update(delta: float) -> void:
 	# Add the gravity.
-	if not is_on_floor():
-		velocity += get_gravity() * delta
+	if not machine_owner.is_on_floor():
+		machine_owner.velocity += machine_owner.get_gravity() * delta
 	
-	if was_on_floor and not is_on_floor():
-		coyote_timer.start()
-	was_on_floor = is_on_floor()
+	#Coyote Timer checking Logic.
+	if machine_owner.was_on_floor and not machine_owner.is_on_floor():
+		machine_owner.coyote_timer.start()
+	machine_owner.was_on_floor = machine_owner.is_on_floor()
 
 	# Handle jump.
-	if Input.is_action_just_pressed(\"jump\") and (is_on_floor() or not coyote_timer.is_stopped()):
-		velocity.y = JUMP_VELOCITY
-
-
+	if Input.is_action_just_pressed(\"jump\") and (machine_owner.is_on_floor() or not machine_owner.coyote_timer.is_stopped()):
+		machine_owner.velocity.y = machine_owner.JUMP_VELOCITY
 
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
 	var direction := Input.get_axis(\"ui_left\", \"ui_right\")
 	if direction:
-		velocity.x = move_toward(velocity.x, direction * SPEED, ACCEL * delta)
-		animated_sprite_2d.play(\"walking\")
-		if velocity.x < 0:
-			animated_sprite_2d.flip_h = true
-		elif velocity.x > 0:
-			animated_sprite_2d.flip_h = false
+		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, direction * machine_owner.SPEED, machine_owner.ACCEL * delta)
+		machine_owner.actor_sprite.play(\"walking\")
+		if machine_owner.velocity.x < 0:
+			machine_owner.actor_sprite.flip_h = true
+		elif machine_owner.velocity.x > 0:
+			machine_owner.actor_sprite.flip_h = false
 		
 	else:
-		velocity.x = move_toward(velocity.x, 0, FRICTION * delta)
-		animated_sprite_2d.stop()
+		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, 0, machine_owner.FRICTION * delta)
+		machine_owner.actor_sprite.stop()
 	
 	if Input.is_action_just_pressed(\"attack\"):
-		attack()
+		transitioned.emit(\"Attacking\")
 	
-	move_and_slide()
+	machine_owner.move_and_slide()
 
 
 func _on_coyote_timer_timeout() -> void:
-
 	print(\"coyote over\")
 	pass # Replace with function body.
+"
+
+[sub_resource type="GDScript" id="GDScript_1y48n"]
+resource_name = "JumpingState"
+script/source = "extends State
+"
+
+[sub_resource type="GDScript" id="GDScript_fg4e1"]
+resource_name = "attackState"
+script/source = "extends State
 "
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4k7gw"]
@@ -91,6 +119,25 @@ height = 32.0
 
 [node name="PlayerCharacter" type="CharacterBody2D" unique_id=1766799002]
 script = SubResource("GDScript_j556s")
+stats = ExtResource("1_1y48n")
+
+[node name="StateMachine" type="Node" parent="." unique_id=429970576 node_paths=PackedStringArray("initial_state", "machine_owner")]
+script = ExtResource("2_1y48n")
+initial_state = NodePath("Idle")
+machine_owner = NodePath("..")
+metadata/_custom_type_script = "uid://crsdputxofos3"
+
+[node name="Idle" type="Node" parent="StateMachine" unique_id=847078356]
+script = SubResource("GDScript_4k7gw")
+metadata/_custom_type_script = "uid://cgrronq2chuk5"
+
+[node name="Jumping" type="Node" parent="StateMachine" unique_id=240341034]
+script = SubResource("GDScript_1y48n")
+metadata/_custom_type_script = "uid://cgrronq2chuk5"
+
+[node name="Attacking" type="Node" parent="StateMachine" unique_id=573327385]
+script = SubResource("GDScript_fg4e1")
+metadata/_custom_type_script = "uid://cgrronq2chuk5"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1453217158]
 texture_filter = 1
