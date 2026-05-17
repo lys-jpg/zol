@@ -1,0 +1,121 @@
+[gd_scene format=3 uid="uid://8hric5c7c1o"]
+
+[ext_resource type="Texture2D" uid="uid://bv0qo4kbovnjw" path="res://assets/sprites/actor/player/NES - Zelda 2_ The Adventure of Link - Playable Characters - Link.png" id="1_02ohv"]
+
+[sub_resource type="GDScript" id="GDScript_j556s"]
+resource_name = "playerCharacter"
+script/source = "extends CharacterBody2D
+
+
+const SPEED = 90.0
+const ACCEL = 500.0
+const FRICTION = 300.0
+const JUMP_VELOCITY = -300.0
+
+@onready var coyote_timer := $CoyoteTimer
+var was_on_floor = false
+
+func attack():
+	print(\"Attack pressed!\")
+
+func _physics_process(delta: float) -> void:
+	
+	# Add the gravity.
+	if not is_on_floor():
+		velocity += get_gravity() * delta
+	
+	if was_on_floor and not is_on_floor():
+		coyote_timer.start()
+	was_on_floor = is_on_floor()
+
+	# Handle jump.
+	if Input.is_action_just_pressed(\"jump\") and (is_on_floor() or not coyote_timer.is_stopped()):
+		velocity.y = JUMP_VELOCITY
+
+
+
+	# Get the input direction and handle the movement/deceleration.
+	# As good practice, you should replace UI actions with custom gameplay actions.
+	var direction := Input.get_axis(\"ui_left\", \"ui_right\")
+	if direction:
+		velocity.x = move_toward(velocity.x, direction * SPEED, ACCEL * delta)
+	else:
+		velocity.x = move_toward(velocity.x, 0, FRICTION * delta)
+	
+	if Input.is_action_just_pressed(\"attack\"):
+		attack()
+	
+	move_and_slide()
+
+
+func _on_coyote_timer_timeout() -> void:
+
+	print(\"coyote over\")
+	pass # Replace with function body.
+"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1f4ql"]
+atlas = ExtResource("1_02ohv")
+region = Rect2(29, 0, 17, 43)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hv236"]
+atlas = ExtResource("1_02ohv")
+region = Rect2(47, 0, 17, 43)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7f2jv"]
+atlas = ExtResource("1_02ohv")
+region = Rect2(65, 0, 17, 43)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v0hs2"]
+atlas = ExtResource("1_02ohv")
+region = Rect2(83, 0, 17, 43)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ns8y8"]
+atlas = ExtResource("1_02ohv")
+region = Rect2(209, 0, 17, 43)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_c56d2"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1f4ql")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hv236")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7f2jv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v0hs2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ns8y8")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_j3yda"]
+radius = 4.0
+height = 22.0
+
+[node name="PlayerCharacter" type="CharacterBody2D" unique_id=1766799002]
+script = SubResource("GDScript_j556s")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1453217158]
+texture_filter = 1
+scale = Vector2(0.5, 0.5)
+sprite_frames = SubResource("SpriteFrames_c56d2")
+autoplay = "default"
+frame_progress = 0.31029296
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=580874419]
+shape = SubResource("CapsuleShape2D_j3yda")
+
+[node name="CoyoteTimer" type="Timer" parent="." unique_id=1359204393]
+wait_time = 0.4
+one_shot = true
+
+[connection signal="timeout" from="CoyoteTimer" to="." method="_on_coyote_timer_timeout"]
