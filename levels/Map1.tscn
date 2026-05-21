@@ -66,7 +66,7 @@ tile_map_data = PackedByteArray("AAD//w4AAAAEAAAAAAAAAAwAAQANAAAAAAAAAA0AAQAOAAA
 tile_set = SubResource("TileSet_6p4ww")
 
 [node name="RigidBody2D" type="RigidBody2D" parent="." unique_id=209783724]
-position = Vector2(169, 58)
+position = Vector2(86, 43)
 mass = 20.0
 script = ExtResource("2_lr1dt")
 

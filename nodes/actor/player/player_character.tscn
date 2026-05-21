@@ -10,6 +10,7 @@ script/source = "extends CharacterBody2D
 
 @export var stats: StatsBase
 
+@onready var state_label: Label = $StateLabel
 
 @onready var actor_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
@@ -38,48 +39,30 @@ script/source = "extends State
 
 
 @onready var state_machine: StateMachine = $\"..\"
-@onready var machine_owner := state_machine.machine_owner
+@onready var machine_owner :CharacterBody2D = state_machine.machine_owner
 
-var was_on_floor = false
+var walk_speed := 300
+var jump_speed := 300
+var gravity := 1000
+var friction := 2000
+var acceleration := 3000
 
 func physics_update(delta: float) -> void:
-	# Add the gravity.
-	if not machine_owner.is_on_floor():
-		machine_owner.velocity += machine_owner.get_gravity() * delta
 	
-	#Coyote Timer checking Logic.
-	if machine_owner.was_on_floor and not machine_owner.is_on_floor():
-		machine_owner.coyote_timer.start()
-	machine_owner.was_on_floor = machine_owner.is_on_floor()
-
-	# Handle jump.
-	if Input.is_action_just_pressed(\"jump\") and (machine_owner.is_on_floor() or not machine_owner.coyote_timer.is_stopped()):
-		machine_owner.velocity.y = machine_owner.JUMP_VELOCITY
-
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var direction := Input.get_axis(\"ui_left\", \"ui_right\")
-	if direction:
-		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, direction * machine_owner.SPEED, machine_owner.ACCEL * delta)
-		machine_owner.actor_sprite.play(\"walking\")
-		if machine_owner.velocity.x < 0:
-			machine_owner.actor_sprite.flip_h = true
-		elif machine_owner.velocity.x > 0:
-			machine_owner.actor_sprite.flip_h = false
-		
-	else:
-		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, 0, machine_owner.FRICTION * delta)
-		machine_owner.actor_sprite.stop()
+	var direction = Input.get_axis(\"left\", \"right\")
 	
+	if Input.is_action_just_pressed(\"down\"):
+		transitioned.emit(\"Crouching\")
+	if direction: 
+		transitioned.emit(\"Walking\")
+	if Input.is_action_just_pressed(\"jump\"):
+		transitioned.emit(\"Jumping\")
 	if Input.is_action_just_pressed(\"attack\"):
 		transitioned.emit(\"Attacking\")
+		
 	
+	machine_owner.velocity.y += gravity * delta
 	machine_owner.move_and_slide()
-
-
-func _on_coyote_timer_timeout() -> void:
-	print(\"coyote over\")
-	pass # Replace with function body.
 "
 
 [sub_resource type="GDScript" id="GDScript_1y48n"]
@@ -87,9 +70,116 @@ resource_name = "JumpingState"
 script/source = "extends State
 "
 
+[sub_resource type="GDScript" id="GDScript_21flv"]
+resource_name = "player_dashing_state"
+script/source = "extends State
+
+@onready var state_machine: StateMachine = $\"..\"
+@onready var machine_owner :CharacterBody2D = state_machine.machine_owner
+
+var walk_speed = 2500
+var friction = 20000
+var acceleration = 200
+var gravity = 1000
+
+func physics_update(delta: float) -> void:
+	machine_owner.velocity.y += gravity * delta
+	
+	if Input.is_action_just_pressed(\"down\"):
+		transitioned.emit(\"Crouching\")
+	
+	var direction = Input.get_axis(\"left\", \"right\")
+	if direction:
+		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, direction * walk_speed, acceleration * delta)
+	else:
+		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, 0, friction * delta)
+		transitioned.emit(\"Idle\")
+	
+	machine_owner.move_and_slide()
+
+
+func _on_dash_timer_timeout() -> void:
+	pass # Replace with function body.
+"
+
 [sub_resource type="GDScript" id="GDScript_fg4e1"]
 resource_name = "attackState"
 script/source = "extends State
+"
+
+[sub_resource type="GDScript" id="GDScript_bg4de"]
+resource_name = "WalkingState"
+script/source = "extends State
+
+@onready var state_machine: StateMachine = $\"..\"
+@onready var machine_owner :CharacterBody2D = state_machine.machine_owner
+
+var walk_speed = 1500
+var run_speed = 2500
+var friction = 20000
+var acceleration = 200
+var gravity = 1000
+
+var is_running = false
+
+func physics_update(delta: float) -> void:
+	machine_owner.velocity.y += gravity * delta
+	var speed : int
+	
+	
+	if Input.is_action_just_pressed(\"down\"):
+		transitioned.emit(\"Crouching\")
+	
+	
+	var direction = Input.get_axis(\"left\", \"right\")
+	if direction and machine_owner.dash_timer.time_left < 0.5:
+		is_running = true
+		machine_owner.dash_timer.stop()
+		machine_owner.dash_timer.wait_time = 0.5
+		
+	if direction:
+		if is_running == true:
+			speed = run_speed
+			print(\"running!\")
+		else:
+			speed = walk_speed
+		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, direction * speed, acceleration * delta)
+	else:
+		machine_owner.velocity.x = move_toward(machine_owner.velocity.x, 0, friction * delta)
+		machine_owner.dash_timer.start()
+
+	
+	machine_owner.move_and_slide()
+
+
+func _on_dash_timer_timeout() -> void:
+	transitioned.emit(\"Idle\")
+	pass # Replace with function body.
+"
+
+[sub_resource type="GDScript" id="GDScript_p4ymi"]
+resource_name = "player_crouch_state"
+script/source = "extends State
+
+func enter() -> void:
+	if not Input.is_action_pressed(\"down\"):
+		transitioned.emit(\"Idle\")
+
+func physics_update(delta: float) -> void:
+	
+	if Input.is_action_just_released(\"down\"):
+		transitioned.emit(\"Idle\")
+	if Input.is_action_just_pressed(\"attack\"):
+		transitioned.emit(\"CrouchAttack\")
+"
+
+[sub_resource type="GDScript" id="GDScript_opqj4"]
+resource_name = "player_crouch_attack"
+script/source = "extends State
+
+func enter() -> void:
+	await get_tree().create_timer(0.2).timeout
+	transitioned.emit(\"Crouching\")
 "
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4k7gw"]
@@ -136,8 +226,24 @@ metadata/_custom_type_script = "uid://cgrronq2chuk5"
 script = SubResource("GDScript_1y48n")
 metadata/_custom_type_script = "uid://cgrronq2chuk5"
 
+[node name="Dashing" type="Node" parent="StateMachine" unique_id=278794452]
+script = SubResource("GDScript_21flv")
+metadata/_custom_type_script = "uid://cgrronq2chuk5"
+
 [node name="Attacking" type="Node" parent="StateMachine" unique_id=573327385]
 script = SubResource("GDScript_fg4e1")
+metadata/_custom_type_script = "uid://cgrronq2chuk5"
+
+[node name="Walking" type="Node" parent="StateMachine" unique_id=1607959964]
+script = SubResource("GDScript_bg4de")
+metadata/_custom_type_script = "uid://cgrronq2chuk5"
+
+[node name="Crouching" type="Node" parent="StateMachine" unique_id=1719393808]
+script = SubResource("GDScript_p4ymi")
+metadata/_custom_type_script = "uid://cgrronq2chuk5"
+
+[node name="CrouchAttack" type="Node" parent="StateMachine" unique_id=1461618502]
+script = SubResource("GDScript_opqj4")
 metadata/_custom_type_script = "uid://cgrronq2chuk5"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1453217158]
@@ -149,11 +255,20 @@ animation = &"walking"
 shape = SubResource("CapsuleShape2D_j3yda")
 
 [node name="CoyoteTimer" type="Timer" parent="." unique_id=1359204393]
-wait_time = 0.4
-one_shot = true
-
-[node name="DashTimer" type="Timer" parent="." unique_id=1866447491]
 wait_time = 0.3
 one_shot = true
 
+[node name="DashTimer" type="Timer" parent="." unique_id=1866447491]
+wait_time = 0.5
+one_shot = true
+
+[node name="StateLabel" type="Label" parent="." unique_id=1329900436]
+offset_left = 4.0
+offset_top = -26.0
+offset_right = 44.0
+offset_bottom = -3.0
+text = "aa"
+
 [connection signal="timeout" from="CoyoteTimer" to="." method="_on_coyote_timer_timeout"]
+[connection signal="timeout" from="DashTimer" to="StateMachine/Walking" method="_on_dash_timer_timeout"]
+[connection signal="timeout" from="DashTimer" to="StateMachine/Dashing" method="_on_dash_timer_timeout"]

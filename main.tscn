@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://cljw7hw625hma"]
+
+[ext_resource type="PackedScene" uid="uid://8vm74mo2rcco" path="res://levels/Map1.tscn" id="1_ig7tw"]
+
+[node name="Game" type="Node2D" unique_id=108682198]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=822819978]
+
+[node name="GameScreen" type="CanvasLayer" parent="." unique_id=66920130]
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="GameScreen" unique_id=1297692924]
+texture_filter = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="GameScreen/SubViewportContainer" unique_id=623231792]
+handle_input_locally = false
+size = Vector2i(320, 240)
+render_target_update_mode = 4
+
+[node name="Node2D" parent="GameScreen/SubViewportContainer/SubViewport" unique_id=85731746 instance=ExtResource("1_ig7tw")]
